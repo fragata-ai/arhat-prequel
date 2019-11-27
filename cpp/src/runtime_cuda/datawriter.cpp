@@ -1,0 +1,89 @@
+//
+// Copyright 2019 FRAGATA COMPUTER SYSTEMS AG
+// Copyright 2017-2018 Intel Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+//
+// Based on neon, Intel(R) Nervana(tm) reference deep learning framework.
+// Ported from Python to C++ and partly modified by FRAGATA COMPUTER SYSTEMS AG.
+//
+
+#include <cstdio>
+#include <cassert>
+
+#include "runtime/arhat.h"
+#include "runtime_cuda/arhat.h"
+
+namespace arhat {
+namespace cuda {
+
+//
+//    ArrayWriter
+//
+
+// construction/destruction
+
+ArrayWriter::ArrayWriter() {
+    dim1 = 0;
+    bsz = 0;
+    itemSize = 0;
+    xfer0 = nullptr;
+    xfer1 = nullptr;
+}
+
+ArrayWriter::~ArrayWriter() {
+    delete[] xfer0;
+    delete[] xfer1;
+}
+
+// interface
+
+void ArrayWriter::Init(int dim1, int bsz, int itemSize) {
+    assert(xfer0 == nullptr && xfer1 == nullptr);
+    assert(itemSize == 1 || itemSize == 2 || itemSize == 4 || itemSize == 8);
+    this->dim1 = dim1;
+    this->bsz = bsz;
+    this->itemSize = itemSize;
+    int xferSize = dim1 * bsz * itemSize;
+    xfer0 = new char[xferSize];
+    xfer1 = new char[xferSize];
+}
+
+int ArrayWriter::Len() {
+    return data.Len();
+}
+
+void *ArrayWriter::Buffer(int index) {
+    return data.Buffer(index);
+}
+
+// overrides
+
+void ArrayWriter::WriteBatch(const void *buf, int count) {
+    assert(count <= bsz);
+    // full batch must be always available even when (count < bsz)
+    CudaMemcpyDtoh(xfer0, buf, dim1 * bsz * itemSize);
+    TransposeSlice(xfer1, xfer0, dim1, bsz, itemSize);
+    char *ptr = (char *)xfer1;
+    int rsz = dim1 * itemSize;
+    for (int i = 0; i < count; i++) {
+        data.Add(rsz, ptr);
+        ptr += rsz;
+    }
+}
+
+} // cuda
+} // arhat
+
