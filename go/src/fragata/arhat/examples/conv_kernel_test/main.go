@@ -1213,7 +1213,7 @@ var codeVerify =
         delete[] devA;
     }
 
-    char *result = "OK";
+    const char *result = "OK";
     if (ratio > 0.01 || ratio2 > 0.01) {
         result = "FAIL";
     }

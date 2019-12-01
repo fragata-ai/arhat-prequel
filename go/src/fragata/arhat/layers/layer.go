@@ -1173,7 +1173,7 @@ func(n *ConvolutionBias) Init(self base.Object, args base.Args) {
     }))
     bias := args["bias"]
     switch bias.(type) {
-    case int, float64, backends.Tensor:
+    case int, float64, backends.Tensor, initializers.Initializer:
         // ok
     default:
         base.InvalidArgument("bias")
@@ -1221,6 +1221,8 @@ func(n *ConvolutionBias) InitParams(shape []int) {
         n.weightBias.Fill(float64(v))
     case float64:
         n.weightBias.Fill(v)
+    case initializers.Initializer:
+        v.Fill(n.weightBias)
     default:
         base.TypeError("Invalid initBias type: %T", v)
     }

@@ -42,7 +42,6 @@ Usage (CPU backend):
 
 import (
     "fragata/arhat/backends"
-    "fragata/arhat/base"
     "fragata/arhat/generators/callbacks"
     "fragata/arhat/generators/data"
     "fragata/arhat/generators/models"
