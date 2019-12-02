@@ -59,15 +59,22 @@ int MemoryData::Size(int index) const {
     return data[index].size;
 }
 
-void *MemoryData::Buffer(int index) const {
+byte_t *MemoryData::Buffer(int index) const {
     if (!(index >= 0 && index < len)) {
         IndexError(__FILE__, __LINE__);
     }
     return data[index].buf;
 }
 
+void MemoryData::GetData(int index, void *buf) const {
+    if (!(index >= 0 && index < len)) {
+        IndexError(__FILE__, __LINE__);
+    }
+    memcpy(buf, data[index].buf, data[index].size);
+}
+
 void MemoryData::Add(int size, const void *buf) {
-    void *p = new char[size];
+    byte_t *p = new byte_t[size];
     memcpy(p, buf, size);
     AddEntry(size, p);
 }
@@ -80,7 +87,7 @@ void MemoryData::Load(const char *fname) {
     int n = ReadInt(fp);
     for (int i = 0; i < n; i++) {
         int size = ReadInt(fp);
-        void *p = new char[size];
+        byte_t *p = new byte_t[size];
         ReadBuffer(fp, size, p);
         AddEntry(size, p);
     }
@@ -103,7 +110,7 @@ void MemoryData::Save(const char *fname) {
 
 // implementation
 
-void MemoryData::AddEntry(int size, void *buf) {
+void MemoryData::AddEntry(int size, byte_t *buf) {
     if (len >= cap) {
         int newCap = (cap > 0) ? 2 * cap : 1024;
         Entry *newData = new Entry[newCap];

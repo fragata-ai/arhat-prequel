@@ -65,7 +65,7 @@ MemoryWriter::~MemoryWriter() { }
 // interface
 
 void MemoryWriter::Write(int size, const void *buf) {
-    void *p = new char[size];
+    byte_t *p = new byte_t[size];
     CudaMemcpyDtoh(p, buf, size);
     AddEntry(size, p);
 }

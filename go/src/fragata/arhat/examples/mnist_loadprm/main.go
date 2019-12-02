@@ -112,17 +112,18 @@ var displayOutputsCode = `
     printf("Output\n");
     ArrayWriter *w = &%s;
     int ndata = w->Len();
+    float r[10];
     for (int i = 0; i < 10; i++) {
-        float *p = (float *)w->Buffer(i);
+        w->GetData(i, r);
         printf("[%%d] %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f\n",
-            i, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9]);
+            i, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9]);
     }
     printf("...\n");
     for (int i = 0; i < 10; i++) {
         int k = ndata - 10 + i;
-        float *p = (float *)w->Buffer(k);
+        w->GetData(k, r);
         printf("[%%d] %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f %%.2f\n",
-            k, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9]);
+            k, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9]);
     }
 `
 

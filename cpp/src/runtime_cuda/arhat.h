@@ -258,8 +258,10 @@ public:
     ~ArrayWriter();
 public:
     void Init(int dim1, int bsz, int itemSize);
-    int Len();
-    void *Buffer(int index);
+    int Len() const;
+    int Size(int index) const;
+    byte_t *Buffer(int index) const;
+    void GetData(int index, void *buf) const;
 public:
     void WriteBatch(const void *buf, int count);
 private:
@@ -267,8 +269,8 @@ private:
     int dim1;
     int bsz;
     int itemSize;
-    void *xfer0;
-    void *xfer1;
+    byte_t *xfer0;
+    byte_t *xfer1;
 };
 
 //

@@ -29,6 +29,12 @@
 namespace arhat {
 
 //
+//    Common types
+//
+
+typedef unsigned char byte_t;
+
+//
 //    Scalar math functions
 //
 
@@ -248,12 +254,13 @@ public:
     void Reset();
     int Len() const;
     int Size(int index) const;
-    void *Buffer(int index) const;
+    byte_t *Buffer(int index) const;
+    void GetData(int index, void *buf) const;
     void Add(int size, const void *buf);
     void Load(const char *fname);
     void Save(const char *fname);
 protected:
-    void AddEntry(int size, void *buf);
+    void AddEntry(int size, byte_t *buf);
 private:
     void Destroy();
     static int ReadInt(FILE *fp);
@@ -266,7 +273,7 @@ private:
 private:
     struct Entry {
         int size;
-        void *buf;
+        byte_t *buf;
     };
 private:
     int len;

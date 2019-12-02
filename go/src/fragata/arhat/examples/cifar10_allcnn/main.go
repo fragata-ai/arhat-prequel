@@ -149,13 +149,6 @@ func Main(engine *util.Engine) {
         "momentum_coef", 0.9,
         "wdecay", weightDecay,
         "schedule", Schedule("step_config", []int{200, 250, 300}, "change", 0.1))
-/*
-    // from cifar10_conv
-    optGdm := GradientDescentMomentum(
-        "learning_rate", 0.01, 
-        "momentum_coef", 0.9, 
-        "stochastic_round", false)
-*/
 
     // configure callbacks
     callbks := Callbacks()

@@ -64,7 +64,7 @@ MemoryWriter::~MemoryWriter() { }
 // interface
 
 void MemoryWriter::Write(int size, const void *buf) {
-    void *p = new char[size];
+    byte_t *p = new byte_t[size];
     CpuMemcpy(p, buf, size);
     AddEntry(size, p);
 }
