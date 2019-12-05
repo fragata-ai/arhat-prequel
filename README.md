@@ -58,7 +58,7 @@ For the CUDA backend:
 ```
 mkdir -p bin
 mkdir -p mnist_mlp_cuda
-go build -o bin/mnist_mlp_cuda fragata/arhat/examples/mnist_mlp_cuda
+go build -o bin/mnist_mlp_cuda fragata/arhat/examples/mnist_mlp
 bin/mnist_mlp_cuda -o mnist_mlp_cuda
 ```
 
@@ -67,7 +67,7 @@ For the CPU backend:
 ```
 mkdir -p bin
 mkdir -p mnist_mlp_cpu
-go build -o bin/mnist_mlp_cpu fragata/arhat/examples/mnist_mlp_cpu
+go build -o bin/mnist_mlp_cpu fragata/arhat/examples/mnist_mlp
 bin/mnist_mlp_cpu -b cpu -o mnist_mlp_cpu
 ```
 
