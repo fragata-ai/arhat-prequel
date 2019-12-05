@@ -58,8 +58,8 @@ For the CUDA backend:
 ```
 mkdir -p bin
 mkdir -p mnist_mlp_cuda
-go build -o bin/mnist_mlp_cuda fragata/arhat/examples/mnist_mlp
-bin/mnist_mlp_cuda -o mnist_mlp_cuda
+go build -o bin/mnist_mlp fragata/arhat/examples/mnist_mlp
+bin/mnist_mlp -o mnist_mlp_cuda
 ```
 
 For the CPU backend:
@@ -67,8 +67,8 @@ For the CPU backend:
 ```
 mkdir -p bin
 mkdir -p mnist_mlp_cpu
-go build -o bin/mnist_mlp_cpu fragata/arhat/examples/mnist_mlp
-bin/mnist_mlp_cpu -b cpu -o mnist_mlp_cpu
+go build -o bin/mnist_mlp fragata/arhat/examples/mnist_mlp
+bin/mnist_mlp -b cpu -o mnist_mlp_cpu
 ```
 
 The generated code will be placed in subdirectories `mnist_mlp_cuda` and `mnist_mlp_cpu` respectively. Separately for each directory, compile all the contained source files and link resulting object files with the runtime libraries. Run the resulting executables from your current directory to train and evaluate the neural network.
