@@ -100,24 +100,27 @@ func List() error {
         }
     }
 
-    index := 1
-    for start := 0; start < count; start += 20 {
-        stop := start + 20
-        if stop > count {
-            stop = count
+    if linuxScripts {
+        index := 1
+        for start := 0; start < count; start += 20 {
+            stop := start + 20
+            if stop > count {
+                stop = count
+            }
+            bfn := fmt.Sprintf("./gather%02d.sh", index)
+            bfp, err := os.Create(bfn)
+            if err != nil {
+                return err
+            }
+            for i := start; i < stop; i++ {
+                fmt.Fprintf(bfp, "echo \"%s\"\n", subs[i][1])
+                fmt.Fprintf(bfp, "bin/imagenet_gather_synset %s\n", subs[i][1])
+            }
+            bfp.Close()
+            index++
         }
-        bfn := fmt.Sprintf("./gather%02d.sh", index)
-        bfp, err := os.Create(bfn)
-        if err != nil {
-            return err
-        }
-        for i := start; i < stop; i++ {
-            fmt.Fprintf(bfp, "echo \"%s\"\n", subs[i][1])
-            fmt.Fprintf(bfp, "bin/imagenet_gather_synset %s\n", subs[i][1])
-        }
-        bfp.Close()
-        index++
     }
+
     return nil
 }
 
