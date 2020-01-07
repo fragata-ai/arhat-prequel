@@ -29,7 +29,6 @@ import (
     "fragata/arhat/generators"
     "fragata/arhat/generators/cpu"
     "fragata/arhat/generators/cuda"
-    "strings"
 )
 
 //
@@ -174,21 +173,21 @@ func(e *Engine) Run(mainFunc MainFunc) {
 }
 
 func(e *Engine) Display(format string, args ...interface{}) {
-    n := len(args)
-    cargs := make([]string, n)
-    for i := 0; i < n; i++ {
-        switch v := args[i].(type) {
+    line := fmt.Sprintf(`printf("%s\n"`, format)
+    for _, arg := range args {
+        line += ", "
+        switch v := arg.(type) {
         case backends.Value:
-            cargs[i] = generators.FormatScalar(v)
+            line += generators.FormatScalar(v)
         case int:
-            cargs[i] = fmt.Sprintf("%d", v)
+            line += fmt.Sprintf("%d", v)
         case float64:
-            cargs[i] = generators.FormatFloat32(v)
+            line += generators.FormatFloat32(v)
         case string:
-            cargs[i] = `"` + v + `"`
+            line += `"` + v + `"`
         }
     }
-    line := fmt.Sprintf(`printf("%s\n", %s);`, format, strings.Join(cargs, ", "))
+    line += ");"
     e.be.WriteLine("%s", line)
 }
 

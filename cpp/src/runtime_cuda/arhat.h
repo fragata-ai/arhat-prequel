@@ -240,6 +240,25 @@ private:
     int pos;
 };
 
+class CannedImageLoader: public DataIterator {
+public:
+    CannedImageLoader();
+    ~CannedImageLoader();
+public:
+    void Init(const char *xfname, const char *yfname, bool makeOnehot);
+    void RgbMeanSubtract(int rPixelMean, int gPixelMean, int bPixelMean);
+    void ValueNormalize(float sourceLow, float sourceHigh, float targetLow, float targetHigh);
+public:
+    void SetBsz(int bsz);
+    int Nbatches();
+    int Ndata();
+    void Reset();
+    void Start();
+    bool Iter(void *x, void *y);
+private:
+    CannedImageLoaderBase base;
+};
+
 //
 //    DataWriter
 //

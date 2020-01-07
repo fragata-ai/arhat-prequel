@@ -671,7 +671,7 @@ PoolLayer::PoolLayer(
         int strD,
         int strH,
         int strW) {
-    buffer = new int[2*(M+N+P+Q)];
+    buffer = new int[2*(K+M+P+Q)];
     int *slice = buffer;
     kSlice = slice;
     for (int ik = 0; ik < K; ik++) {

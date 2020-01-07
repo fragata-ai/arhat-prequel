@@ -33,8 +33,8 @@ namespace arhat {
 
 // construction/destruction
 
-DefaultSchedule::DefaultSchedule(float change) {
-    this->change = change;
+DefaultSchedule::DefaultSchedule() {
+    change = 0.0f;
     numConfig = 0;
     steps = 0;
 }
@@ -42,6 +42,12 @@ DefaultSchedule::DefaultSchedule(float change) {
 DefaultSchedule::~DefaultSchedule() { }
 
 // interface
+
+void DefaultSchedule::Init(float change) {
+    this->change = change;
+    numConfig = 0;
+    steps = 0;
+}
 
 void DefaultSchedule::AddConfig(int step) {
     assert(numConfig < MAX_CONFIG);
@@ -76,6 +82,11 @@ StepSchedule::~StepSchedule() { }
 
 // interface
 
+void StepSchedule::Init() {
+    numConfig = 0;
+    steps = 0.0f;
+}
+
 void StepSchedule::AddConfig(int step, float change) {
     assert(numConfig < MAX_CONFIG);
     this->stepConfig[numConfig] = step;
@@ -103,15 +114,21 @@ float StepSchedule::GetLearningRate(float learningRate, int epoch) {
 
 // construction/destruction
 
-PowerSchedule::PowerSchedule(int step, float change) {
-    this->stepConfig = step;
-    this->change = change;
+PowerSchedule::PowerSchedule() {
+    stepConfig = 0;
+    change = 0.0f;
     steps = 0;
 }
 
 PowerSchedule::~PowerSchedule() { }
 
 // overrides
+
+void PowerSchedule::Init(int step, float change) {
+    this->stepConfig = step;
+    this->change = change;
+    steps = 0;
+}
 
 float PowerSchedule::GetLearningRate(float learningRate, int epoch) {
     steps = epoch / stepConfig;

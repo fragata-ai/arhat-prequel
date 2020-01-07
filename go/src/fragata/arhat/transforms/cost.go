@@ -528,7 +528,7 @@ func(m *TopKMisclassification) Call(y []backends.Tensor, t []backends.Tensor) []
     nEq := be.Sum(y[0].Eq(m.correctProbs), 0)
     m.topk.Assign(fone.Sub(
         nSlots.Gt(izero).Mul(
-            nEq.Ge(nSlots).Mul(ione.Sub(nSlots.Div(nEq))).Add(nSlots.Div(nEq)))))
+            nEq.Le(nSlots).Mul(ione.Sub(nSlots.Div(nEq))).Add(nSlots.Div(nEq)))))
     m.top1.Assign(fone.Sub(
         be.Max(y[0], 0).Eq(m.correctProbs).Div(nEq)))
     m.correctProbs.Assign(be.Safelog(m.correctProbs).Neg())

@@ -23,6 +23,7 @@
 //
 
 #include <cstdio>
+#include <cstdint>
 #include <cfloat>
 #include <cmath>
 
@@ -90,9 +91,10 @@ public:
 
 class DefaultSchedule: public Schedule {
 public:
-    DefaultSchedule(float change);
+    DefaultSchedule();
     ~DefaultSchedule();
 public:
+    void Init(float change);
     void AddConfig(int step);
 public:
     float GetLearningRate(float learningRate, int epoch);
@@ -114,6 +116,7 @@ public:
     StepSchedule();
     ~StepSchedule();
 public:
+    void Init();
     void AddConfig(int step, float change);
 public:
     float GetLearningRate(float learningRate, int epoch);
@@ -132,8 +135,10 @@ private:
 
 class PowerSchedule: public Schedule {
 public:
-    PowerSchedule(int step, float change);
+    PowerSchedule();
     ~PowerSchedule();
+public:
+    void Init(int step, float change);
 public:
     float GetLearningRate(float learningRate, int epoch);
 private:
@@ -234,6 +239,114 @@ private:
     float *yTrain;
     float *xTest;
     float *yTest;
+};
+
+//
+//    Data iterators
+//
+
+class CannedImageLoaderBase {
+public:
+    CannedImageLoaderBase();
+    ~CannedImageLoaderBase();
+public:
+    void Init(const char *xfname, const char *yfname, bool makeOnehot);
+    void RgbMeanSubtract(int rPixelMean, int gPixelMean, int bPixelMean);
+    void ValueNormalize(float sourceLow, float sourceHigh, float targetLow, float targetHigh); 
+    void SetBsz(int bsz);
+    int Nbatches();
+    int Ndata();
+    void Reset();
+    void Start();
+    bool ReadBatch();
+    float *XBuf();
+    int XBufSize();
+    float *YBuf();
+    int YBufSize();
+private:
+    void UnpackImages(int size);
+    void UnpackLabels(int size);
+    void RewindImages();
+    void ReadImages(int start, int size);
+    void TransformImages();
+    static void UnpackU8(
+        const uint8_t *in, 
+        int inDim0, 
+        int inDim1, 
+        int inStart, 
+        int inStop,
+        float *out,
+        int outDim0,
+        int outDim1,
+        int outStart);
+    static void UnpackU32(
+        const uint32_t *in, 
+        int inDim0, 
+        int inDim1, 
+        int inStart, 
+        int inStop,
+        float *out,
+        int outDim0,
+        int outDim1,
+        int outStart,
+        bool onehot);
+    static void TransposeU32(
+        const uint32_t *in, 
+        int inDim0, 
+        int inDim1, 
+        int inStart, 
+        int inStop,
+        float *out,
+        int outDim0,
+        int outDim1,
+        int outStart);
+    static void OnehotU32(
+        const uint32_t *in, 
+        int inDim0, 
+        int inDim1, 
+        int inStart, 
+        int inStop,
+        float *out,
+        int outDim0,
+        int outDim1,
+        int outStart);
+private:
+    struct RgbMeanSubtractParam {
+        bool enable;
+        uint8_t pixelMean[3];
+    };
+    struct ValueNormalizeParam {
+        bool enable;
+        float xmin;
+        float xspan;
+        float ymin;
+        float yspan;
+    };
+private:
+    FILE *xfp;
+    int ndata;
+    int height;
+    int width;
+    int nchan;
+    int nclass;
+    bool makeOnehot;
+    uint8_t *xsrc; // one batch
+    int xsrcDim0;
+    int xsrcDim1;
+    uint32_t *ysrc; // all labels
+    int ysrcDim0;
+    int ysrcDim1;
+    int bsz;
+    float *xbuf;
+    int xbufDim0;
+    int xbufDim1;
+    float *ybuf;
+    int ybufDim0;
+    int ybufDim1;
+    int start;
+    int pos;
+    RgbMeanSubtractParam rgbMeanSubtract;
+    ValueNormalizeParam valueNormalize;
 };
 
 //

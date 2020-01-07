@@ -43,10 +43,10 @@ import (
     "fragata/arhat/generators/callbacks"
     "fragata/arhat/generators/data"
     "fragata/arhat/generators/models"
+    "fragata/arhat/generators/optimizers"
     "fragata/arhat/generators/util"
     "fragata/arhat/initializers"
     "fragata/arhat/layers"
-    "fragata/arhat/optimizers"
     "fragata/arhat/transforms"
 )
 

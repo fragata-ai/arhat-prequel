@@ -1129,182 +1129,8 @@ func(n *Convolution) Bprop(
 }
 
 //
-//    ConvolutionBias
+//    SKIPPED: ConvolutionBias
 //
-
-type ConvolutionBias struct {
-    Convolution
-    initBias interface{}
-    weightBias backends.Tensor
-    gradBias backends.Tensor
-    accGradBias backends.Tensor
-    states [2]*States // overrides ParameterLayer.states
-}
-
-var convolutionBiasInitArgMap = base.ArgMap{
-    "fshape": base.NewAnyArg(),               // passthru
-    "strides": base.NewAnyArgOpt(nil),        // passthru
-    "padding": base.NewAnyArgOpt(nil),        // passthru
-    "dilation": base.NewAnyArgOpt(nil),       // passthru
-    "init": base.NewAnyArgOpt(nil),           // passthru
-    "bsum": base.NewBoolArgOpt(false),        // passthru
-    "name": base.NewAnyArgOpt(""),            // passthru
-    "bias": base.NewAnyArgOpt(nil),
-}
-
-func NewConvolutionBias(args ...interface{}) *ConvolutionBias {
-    n := new(ConvolutionBias)
-    n.Init(n, base.MakeArgs(args))
-    return n
-}
-
-func(n *ConvolutionBias) Init(self base.Object, args base.Args) {
-    args = convolutionBiasInitArgMap.Expand(args)
-    n.Convolution.Init(
-        self, 
-        args.Filter([]string{
-            "fshape", 
-            "strides", 
-            "padding", 
-            "dilation", 
-            "init", 
-            "bsum", 
-            "name", 
-    }))
-    bias := args["bias"]
-    switch bias.(type) {
-    case int, float64, backends.Tensor, initializers.Initializer:
-        // ok
-    default:
-        base.InvalidArgument("bias")
-    }
-    n.initBias = bias
-    n.weightBias = nil
-    n.gradBias = nil
-    n.states[0] = NewStates()
-    n.states[1] = NewStates()
-    n.initParams = n.InitParams // overload ParameterLayer default
-}
-
-func(n *ConvolutionBias) ClassName() string {
-    return "arhat.layers.ConvolutionBias"
-}
-
-func(n *ConvolutionBias) InitParams(shape []int) {
-    be := backends.Be()
-
-    // init weight
-    n.Convolution.InitParams(shape)
-
-    // init bias using channel number
-    dim0 := n.outShape[0]
-
-    makeParam := func(v int) backends.Tensor {
-        result := be.NewTensor([]int{dim0, 1}, base.DtypeNone)
-        if v != base.IntNone {
-            result.Fill(v)
-        }
-        return result
-    }
-
-    n.weightBias = makeParam(0)
-    n.gradBias = makeParam(base.IntNone)
-
-    switch v := n.initBias.(type) {
-    case backends.Tensor:
-        // ACHTUNG: This is different from original code which does something strange
-        base.AssertMsg(
-            base.IntsEq(v.Shape(), n.weightBias.Shape()), 
-            "Initial weights shape does not match")
-        n.weightBias.Assign(v)
-    case int:
-        n.weightBias.Fill(float64(v))
-    case float64:
-        n.weightBias.Fill(v)
-    case initializers.Initializer:
-        v.Fill(n.weightBias)
-    default:
-        base.TypeError("Invalid initBias type: %T", v)
-    }
-
-    if n.accumulateUpdates {
-        n.accGradBias = makeParam(base.IntNone)
-        n.accParams = append(n.accParams, accParam{n.accGradBias, n.gradBias})
-    }
-}
-
-func(n *ConvolutionBias) Configure(inObj InputObject) {
-    n.Convolution.Configure(inObj)
-}
-
-func(n *ConvolutionBias) GetParams() []Param {
-    return []Param{
-        Param{n.w, n.dw, n.states[0]},
-        Param{n.weightBias, n.gradBias, n.states[1]},
-    }
-}
-
-func(n *ConvolutionBias) Fprop(
-        inputs []backends.Tensor, inference bool, beta float64) []backends.Tensor {
-    assertSingle(inputs)
-    be := backends.Be()
-    n.inputs = inputs
-    be.FpropConv(
-        n.nglayer,     // layer
-        inputs[0],     // i
-        n.w,           // f
-        n.outputs[0],  // o
-        nil,           // x
-        n.weightBias,  // bias
-        n.batchSum,    // bsum
-        1.0,           // alpha
-        beta,          // beta
-        false,         // relu
-        false,         // brelu
-        0.0)           // slope
-    return n.outputs
-}
-
-// SKIPPED: @Layer.accumulates decorator in original code
-func(n *ConvolutionBias) Bprop(
-        errors []backends.Tensor, alpha float64, beta float64) []backends.Tensor {
-    assertSingle(errors)
-    be := backends.Be()
-    if n.deltas != nil {
-        be.BpropConv(
-            n.nglayer,   // layer
-            n.w,         // f
-            errors[0],   // e
-            n.deltas[0], // gradI
-            nil,         // x
-            nil,         // bias
-            nil,         // bsum
-            alpha,       // alpha
-            beta,        // beta
-            false,       // relu
-            false,       // brelu
-            0.0)         // slope
-    }
-    be.UpdateConv(
-        n.nglayer,   // layer
-        n.inputs[0], // i
-        errors[0],   // e
-        n.dw,        // gradF
-        1.0,         // alpha
-        0.0,         // beta,
-        n.gradBias)  // gradBias
-    return n.deltas
-}
-
-func(n *ConvolutionBias) ReadParams(r ParamReader) {
-    r.Read(n.w)
-    r.Read(n.weightBias)
-}
-
-func(n *ConvolutionBias) WriteParams(w ParamWriter) {
-    w.Write(n.w)
-    w.Write(n.weightBias)
-}
 
 //
 //    Deconvolution
@@ -2146,43 +1972,17 @@ func NewConv(args ...interface{}) *Conv {
 func(n *Conv) Init(args base.Args) {
     args = convInitArgMap.Expand(args)
     n.CompoundLayer.Init(args.Filter([]string{"bias", "batch_norm", "activation", "name"}))
-    if args["bias"] != nil {
-        targs := args.Filter([]string{
-            "fshape",
-            "strides",
-            "padding",
-            "dilation",
-            "init",
-            "bias",
-            "name",
-        })
-        targs["bsum"] = args["batch_norm"]
-        n.Append(NewConvolutionBias(targs))
-    } else {
-        targs := args.Filter([]string{
-            "fshape",
-            "strides",
-            "padding",
-            "dilation",
-            "init",
-            "name",
-        })
-        targs["bsum"] = args["batch_norm"]
-        n.Append(NewConvolution(targs))
-    }
+    targs := args.Filter([]string{
+        "fshape",
+        "strides",
+        "padding",
+        "dilation",
+        "init",
+        "name",
+    })
+    targs["bsum"] = args["batch_norm"]
+    n.Append(NewConvolution(targs))
     n.AddPostfilterLayers()
-}
-
-func(n *Conv) AddPostfilterLayers() {
-    n.InitBaseName()
-    if n.batchNorm {
-        name := n.baseName + "_bnorm"
-        n.Append(NewBatchNorm("name", name))
-    }
-    if n.activation != nil {
-        name := n.baseName + "_" + n.activation.ShortClassName()
-        n.Append(NewActivation("transform", n.activation, "name", name))
-    }
 }
 
 //
@@ -2267,7 +2067,7 @@ func(n *LRN) Init(self base.Object, args base.Args) {
     n.alpha = args["alpha"].(float64)
     n.beta = args["beta"].(float64)
     n.ascale = args["ascale"].(float64)
-    n.bpower = args["bposer"].(float64)
+    n.bpower = args["bpower"].(float64)
     n.ownsDelta = true
     n.lrnParams.Init()
     n.nglayer = nil

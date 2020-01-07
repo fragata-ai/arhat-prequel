@@ -23,12 +23,10 @@
 package optimizers
 
 import (
-    "fmt"
     "fragata/arhat/backends"
     "fragata/arhat/base"
     "fragata/arhat/layers"
     "math"
-    "strings"
 )
 
 //
@@ -46,24 +44,13 @@ func getParamList(layerList []layers.Layer) []layers.Param {
     return plist
 }
 
-// ACHTUNG: Same as in generators - unify?
-func formatFloat32(x float64) string {
-    s := fmt.Sprintf("%.7g", x)
-    if !strings.Contains(s, ".") && !strings.Contains(s, "e") {
-        s += ".0"
-    }
-    s += "f"
-    return s
-}
-
 //
 //    Schedule
 //
 
 type Schedule interface {
     base.Object
-    GetLearningRate(learningRate float64, epoch int) float64
-    Construct(symbol string) []string
+    GetLearningRate(learningRate float64, epoch backends.Value) backends.Value
 }
 
 //
@@ -104,28 +91,15 @@ func ToSchedule(v interface{}) Schedule {
 }
 
 //
-//    ScheduleBase
-//
-
-type ScheduleBase struct {
-    base.ObjectBase
-}
-
-func(s *ScheduleBase) Init(self base.Object) {
-    s.ObjectBase.Init(self, nil)
-}
-
-//
 //    DefaultSchedule
 //
 
 // NOTE: All legacy functionality has been removed as adviced in the original code
 
 type DefaultSchedule struct {
-    ScheduleBase
+    base.ObjectBase
     stepConfig []int
     change float64
-    steps int
 }
 
 var defaultScheduleInitArgMap = base.ArgMap{
@@ -133,45 +107,19 @@ var defaultScheduleInitArgMap = base.ArgMap{
     "change": base.NewFloatArgOpt(1.0),
 }
 
-func NewDefaultSchedule(args ...interface{}) *DefaultSchedule {
-    s := new(DefaultSchedule)
-    s.Init(s, base.MakeArgs(args))
-    return s
-}
-
 func(s *DefaultSchedule) Init(self base.Object, args base.Args) {
     args = defaultScheduleInitArgMap.Expand(args)
-    s.ScheduleBase.Init(self)
+    s.ObjectBase.Init(self, nil)
     s.stepConfig = base.ToIntList(args["step_config"])
     s.change = args["change"].(float64)
-    s.steps = 0
 }
 
-func(s *DefaultSchedule) GetLearningRate(learningRate float64, epoch int) float64 {
-    // NOTE: All legacy functionality has been removed to StepSchedule and PowerSchedule
-    //     as adviced in the original code
-    steps := 0
-    for _, v := range s.stepConfig {
-        if epoch >= v {
-            steps++
-        }
-    }
-    s.steps = steps
-    return learningRate * math.Pow(s.change, float64(s.steps))
+func(s *DefaultSchedule) StepConfig() []int {
+    return s.stepConfig
 }
 
-func(s *DefaultSchedule) Construct(symbol string) []string {
-    var result []string
-    result = append(result, 
-        fmt.Sprintf("DefaultSchedule %s(%s);", symbol, formatFloat32(s.change)))
-    for _, step := range s.stepConfig {
-        result = append(result, fmt.Sprintf("%s.AddConfig(%d);", symbol, step))
-    }
-    return result
-}
-
-func(s *DefaultSchedule) ClassName() string {
-    return "arhat.optimizers.DefaultSchedule"
+func(s *DefaultSchedule) Change() float64 {
+    return s.change
 }
 
 //
@@ -179,10 +127,9 @@ func(s *DefaultSchedule) ClassName() string {
 //
 
 type StepSchedule struct {
-    ScheduleBase
+    base.ObjectBase
     stepConfig []int
     change []float64
-    steps float64
 }
 
 var stepScheduleInitArgMap = base.ArgMap{
@@ -190,48 +137,21 @@ var stepScheduleInitArgMap = base.ArgMap{
     "change": base.NewFloatListArg(),
 }
 
-func NewStepSchedule(args ...interface{}) *StepSchedule {
-    s := new(StepSchedule)
-    s.Init(s, base.MakeArgs(args))
-    return s
-}
-
 func(s *StepSchedule) Init(self base.Object, args base.Args) {
     args = stepScheduleInitArgMap.Expand(args)
-    s.ScheduleBase.Init(self)
+    s.ObjectBase.Init(self, nil)
     s.stepConfig = base.ToIntList(args["step_config"])
     s.change = base.ToFloatList(args["change"])
-    s.steps = 0.0
     base.AssertMsg(len(s.stepConfig) == len(s.change),
         "The arguments change and step_config must have the same length.")
 }
 
-func(s *StepSchedule) GetLearningRate(learningRate float64, epoch int) float64 {
-    for i, v := range s.stepConfig {
-        if epoch == v {
-            s.steps = s.change[i]
-            break
-        }
-    }
-    if s.steps != 0.0 {
-        return s.steps
-    }
-    return learningRate
+func(s *StepSchedule) StepConfig() []int {
+    return s.stepConfig
 }
 
-func(s *StepSchedule) Construct(symbol string) []string {
-    var result []string
-    result = append(result, fmt.Sprintf("StepSchedule %s;\n", symbol))
-    for i, _ := range s.stepConfig {
-        result = append(result, 
-            fmt.Sprintf("%s.AddConfig(%d, %s);", 
-                symbol, s.stepConfig[i], formatFloat32(s.change[i])))
-    }
-    return result
-}
-
-func(s *StepSchedule) ClassName() string {
-    return "arhat.optimizers.StepSchedule"
+func(s *StepSchedule) Change() []float64 {
+    return s.change
 }
 
 //
@@ -239,10 +159,9 @@ func(s *StepSchedule) ClassName() string {
 //
 
 type PowerSchedule struct {
-    ScheduleBase
+    base.ObjectBase
     stepConfig int
     change float64
-    steps int
 }
 
 var powerScheduleInitArgMap = base.ArgMap{
@@ -250,35 +169,19 @@ var powerScheduleInitArgMap = base.ArgMap{
     "change": base.NewFloatArg(),
 }
 
-func NewPowerSchedule(args ...interface{}) *PowerSchedule {
-    s := new(PowerSchedule)
-    s.Init(s, base.MakeArgs(args))
-    return s
-}
-
 func(s *PowerSchedule) Init(self base.Object, args base.Args) {
     args = powerScheduleInitArgMap.Expand(args)
-    s.ScheduleBase.Init(self)
+    s.ObjectBase.Init(self, nil)
     s.stepConfig = args["step_config"].(int)
     s.change = args["change"].(float64)
-    s.steps = 0
 }
 
-func(s *PowerSchedule) GetLearningRate(learningRate float64, epoch int) float64 {
-    s.steps = epoch / s.stepConfig
-    return learningRate * math.Pow(s.change, float64(s.steps))
+func(s *PowerSchedule) StepConfig() int {
+    return s.stepConfig
 }
 
-func(s *PowerSchedule) Construct(symbol string) []string {
-    var result []string
-    result = append(result, 
-        fmt.Sprintf("PowerSchedule %s(%d, %s);", 
-            symbol, s.stepConfig, formatFloat32(s.change)))
-    return result
-}
-
-func(s *PowerSchedule) ClassName() string {
-    return "arhat.optimizers.PowerSchedule"
+func(s PowerSchedule) Change() float64 {
+    return s.change
 }
 
 //
@@ -409,7 +312,7 @@ var gradientDescentMomentumInitArgMap = base.ArgMap{
     "gradient_clip_value": base.NewFloatArgOpt(base.FloatNone),
     "param_clip_value": base.NewFloatArgOpt(base.FloatNone),
     "name": base.NewAnyArgOpt(""), // passthru
-    "schedule": NewScheduleArgOpt(nil),
+    "schedule": NewScheduleArg(),
     "nesterov": base.NewBoolArgOpt(false),
 }
 
@@ -429,14 +332,15 @@ func(o *GradientDescentMomentum) Init(self base.Object, args base.Args) {
     o.paramClipValue = args["param_clip_value"].(float64)
     o.wdecay = args["wdecay"].(float64)
     o.schedule = ToSchedule(args["schedule"])
-    if o.schedule == nil {
-        o.schedule = NewDefaultSchedule()
-    }
     o.stochasticRound = args["stochastic_round"].(bool)
     o.nesterov = args["nesterov"].(bool)
     if o.momentumCoef == 0.0 && o.nesterov {
         base.ValueError("nesterov requires non-zero momentum")
     }
+}
+
+func(o *GradientDescentMomentum) ClassName() string {
+    return "arhat.optimizers.GradientDescentMomentum"
 }
 
 func(o *GradientDescentMomentum) Reset(layerList []layers.Layer) {
@@ -462,7 +366,7 @@ func(o *GradientDescentMomentum) Reset(layerList []layers.Layer) {
 func(o *GradientDescentMomentum) Optimize(layerList []layers.Layer, epoch backends.Value) {
     be := backends.Be()
 
-    lrate := be.GetLearningRate(o.schedule, o.learningRate, epoch)
+    lrate := o.schedule.GetLearningRate(o.learningRate, epoch)
     paramList := getParamList(layerList)
 
     scaleFactor := o.ClipGradientNorm(paramList, o.gradientClipNorm)
@@ -518,7 +422,70 @@ func(o *GradientDescentMomentum) Schedule() Schedule {
     return o.schedule
 }
 
-func(o *GradientDescentMomentum) ClassName() string {
-    return "arhat.optimizers.GradientDescentMomentum"
+//
+//    MultiOptimizer
+//
+
+type MultiOptimizer struct {
+    OptimizerBase
+    optimizerMapping map[string]Optimizer
+    mapList map[Optimizer][]layers.Layer
+}
+
+var multiOptimizerInitArgMap = base.ArgMap{
+    "name": base.NewAnyArgOpt(""), // passthru
+}
+
+func NewMultiOptimizer(
+        optimizerMapping map[string]Optimizer, args ...interface{}) *MultiOptimizer {
+    o := new(MultiOptimizer)
+    o.Init(o, optimizerMapping, base.MakeArgs(args))
+    return o
+}
+
+func(o *MultiOptimizer) Init(
+        self base.Object, optimizerMapping map[string]Optimizer, args base.Args) {
+    args = multiOptimizerInitArgMap.Expand(args)
+    o.OptimizerBase.Init(self, args.Filter([]string{"name"}))
+    o.optimizerMapping = optimizerMapping
+    base.AssertMsg(o.optimizerMapping["default"] != nil,
+        "Must specify a default optimizer in layer type to optimizer mapping")
+    o.mapList = nil
+}
+
+func(o *MultiOptimizer) ClassName() string {
+    return "arhat.optimizers.MultiOptimizer"
+}
+
+func(o *MultiOptimizer) Reset(layerList []layers.Layer) {
+    o.mapList = o.mapOptimizers(layerList)
+    for opt, list := range o.mapList {
+        opt.Reset(list)
+    }
+}
+
+func(o *MultiOptimizer) Optimize(layerList []layers.Layer, epoch backends.Value) {
+    for opt, list := range o.mapList {
+        opt.Optimize(list, epoch)
+    }
+}
+
+// maps the optimizers to their corresponding layers
+func(o *MultiOptimizer) mapOptimizers(layerList []layers.Layer) map[Optimizer][]layers.Layer {
+    mapList := make(map[Optimizer][]layers.Layer)
+    for _, layer := range layerList {
+        className := layer.ShortClassName()
+        name := layer.Name()
+        var opt Optimizer
+        if v, ok := o.optimizerMapping[name]; ok {
+            opt = v
+        } else if v, ok := o.optimizerMapping[className]; ok {
+            opt = v
+        } else {
+            opt = o.optimizerMapping["default"]
+        }
+        mapList[opt] = append(mapList[opt], layer)
+    }
+    return mapList
 }
 

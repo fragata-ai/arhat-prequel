@@ -1,4 +1,3 @@
-
 //
 // Copyright 2019 FRAGATA COMPUTER SYSTEMS AG
 // Copyright 2017-2018 Intel Corporation
@@ -81,7 +80,7 @@ void ArrayIterator::Init(
         if (makeOnehot) {
             int ysize = xdim0 * ydim1;
             for (int i = 0; i < ysize; i++) {
-                if (!(y[i] >= 0.0 && y[i] <= float(nclass - 1))) {
+                if (!(y[i] >= 0.0f && y[i] <= float(nclass - 1))) {
                     char buf[256];
                     sprintf(buf, "Labels must range from 0 to %d", nclass - 1);
                     Error(buf, __FILE__, __LINE__);
@@ -90,7 +89,6 @@ void ArrayIterator::Init(
                     Error("Labels must only contain integers", __FILE__, __LINE__);
             }
         }
-
     }
 
     ndata = xdim0;
@@ -144,7 +142,7 @@ void ArrayIterator::SetBsz(int bsz) {
 
 int ArrayIterator::Nbatches() {
     assert(bsz != 0);
-    return (ndata - start + bsz - 1) / bsz;
+    return (ndata + bsz - 1) / bsz;
 }
 
 int ArrayIterator::Ndata() {
@@ -156,7 +154,7 @@ void ArrayIterator::Reset() {
 }
 
 void ArrayIterator::Start() {
-    pos = 0;
+    pos = start;
 }
 
 bool ArrayIterator::Iter(void *x, void *y) {

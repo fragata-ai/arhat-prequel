@@ -175,15 +175,6 @@ func(b *GeneratorBase) DeviceChunks() []string {
     return b.deviceChunks
 }
 
-func(b *GeneratorBase) GetLearningRate(
-        schedule backends.Schedule, learningRate float64, epoch backends.Value) backends.Value {
-    epochSymbol := epoch.(*IntSymbol).Symbol()
-    result := b.MakeFloatSymbol()
-    b.WriteLine("float %s = schedule->GetLearningRate(%s, %s);", 
-        result.Symbol(), FormatFloat32(learningRate), epochSymbol)
-    return result
-}
-
 func(b *GeneratorBase) StartCode() {
     b.codeStackTop = 0
     b.writeMode = writeModeHost

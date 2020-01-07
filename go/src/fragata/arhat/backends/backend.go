@@ -40,17 +40,6 @@ type Transform interface {
 }
 
 //
-//    Schedule
-//
-//    Replicated optimizers.Schedule to avoid circular imports
-//
-
-type Schedule interface {
-    base.Object
-    GetLearningRate(learningRate float64, epoch int) float64
-}
-
-//
 //    Op
 //
 
@@ -991,8 +980,6 @@ type Backend interface {
     // rng methods
     RngNormal(out Tensor, loc float64, scale float64, size []int)
     RngUniform(out Tensor, low float64, high float64, size []int)
-    // for generator hooks
-    GetLearningRate(schedule Schedule, learningRate float64, epoch Value) Value
     // Not in original backends.Backend
     CompoundDot(
         x Tensor,
@@ -1527,13 +1514,6 @@ func(b *BackendBase) Onehot(indices Tensor, axis int) Value {
     base.AssertMsg(indices.Dtype() == base.Int32 || indices.Dtype() == base.Uint32,
         "should be int32 or uint32, got %s", indices.Dtype().String())
     return BuildOpTreeNode(Onehot, nil, nil).SetIdx(indices).SetAxis(axis)
-}
-
-func(b *BackendBase) GetLearningRate(
-        schedule Schedule, learningRate float64, epoch Value) Value {
-    v := epoch.(*Int).Value()
-    r := schedule.GetLearningRate(learningRate, v)
-    return b.Float(r)
 }
 
 //

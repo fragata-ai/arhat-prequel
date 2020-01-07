@@ -122,16 +122,9 @@ func(m *Model) Fit(
     b.WriteLine("void %s(DataIterator *dataset, Callbacks *callbacks) {", id)
     b.Indent(1)
 
-    scheduleRef := "nullptr"
-    if schedule := optimizer.Schedule(); schedule != nil {
-        ctor := schedule.Construct("schedule")
-        for _, line := range ctor {
-            b.WriteLine("%s", line)
-        }
-        scheduleRef = "&schedule"
-    }
-
     m.Initialize(dataset.Shape(), cost)
+
+    optimizer.Reset(m.LayersToOptimize())
 
     b.WriteLine("callbacks->OnTrainBegin();")
     b.WriteLine("int numEpochs = %d;", numEpochs)
@@ -139,7 +132,7 @@ func(m *Model) Fit(
     b.WriteLine("while (epoch < numEpochs && !callbacks->Finished()) {")
     b.Indent(1)
     b.WriteLine("callbacks->OnEpochBegin(epoch);")
-    m.epochFit(dataset, optimizer, scheduleRef, "epoch")
+    m.epochFit(dataset, optimizer, "epoch")
     b.WriteLine("callbacks->OnEpochEnd(epoch);")
     b.WriteLine("epoch++;")
     b.Indent(-1)
@@ -157,22 +150,17 @@ func(m *Model) Fit(
 func(m *Model) epochFit(
         dataset *data.DataIterator, 
         optimizer optimizers.Optimizer,
-        scheduleRef string,
         epochSymbol string) {
     b := m.be
     b.PushCode()
     id := m.makeEpochFitId()
     b.WriteLine("// model=%s", m.Name())
     sig := fmt.Sprintf(
-        "void %s(DataIterator *dataset, Callbacks *callbacks, Schedule *schedule, int epoch) {",
-            id)
+        "void %s(DataIterator *dataset, Callbacks *callbacks, int epoch) {", id)
     m.writeLongSig(sig)
     b.Indent(1)
 
     b.WriteLine("float totalCost = 0.0;")
-
-    layersToOptimize := m.LayersToOptimize()
-    optimizer.Reset(layersToOptimize)
 
     // iterate through minibatches of the dataset
     b.WriteLine("int mbIdx = 0;")
@@ -199,7 +187,7 @@ func(m *Model) epochFit(
     delta := cost.GetErrors(x, t)
 
     m.Bprop(delta)
-    m.optimize(optimizer, layersToOptimize, "epoch")
+    m.optimize(optimizer, m.LayersToOptimize(), "epoch")
 
     b.WriteLine("callbacks->OnMinibatchEnd(epoch, mbIdx);")
     b.WriteLine("mbIdx++;")
@@ -220,7 +208,7 @@ func(m *Model) epochFit(
     b.WriteLine("")
     b.PopCode()
 
-    b.WriteLine("%s(dataset, callbacks, %s, %s);", id, scheduleRef, epochSymbol)
+    b.WriteLine("%s(dataset, callbacks, %s);", id, epochSymbol)
 }
 
 func(m *Model) Eval(dataset *data.DataIterator, metric transforms.Metric) []backends.Value {
@@ -390,14 +378,14 @@ func(m *Model) optimize(
     b.PushCode()
     id := m.makeOptimizeId(optimizer)
     b.WriteLine("// optimizer=%s", optimizer.Name())
-    b.WriteLine("void %s(Schedule *schedule, int epoch) {", id)
+    b.WriteLine("void %s(int epoch) {", id)
     b.Indent(1)
     optimizer.Optimize(layerList, generators.NewIntSymbol("epoch"))
     b.Indent(-1)
     b.WriteLine("}")
     b.WriteLine("")
     b.PopCode()
-    b.WriteLine("%s(schedule, %s);", id, epochSymbol)
+    b.WriteLine("%s(%s);", id, epochSymbol)
 }
 
 func(m *Model) reset(dataset *data.DataIterator) {
