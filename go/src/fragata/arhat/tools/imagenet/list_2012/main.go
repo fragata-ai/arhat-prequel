@@ -1,5 +1,5 @@
 //
-// Copyright 2019 FRAGATA COMPUTER SYSTEMS AG
+// Copyright 2019-2020 FRAGATA COMPUTER SYSTEMS AG
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import (
 
 var (
     sourceUrl = "http://image-net.org/challenges/LSVRC/2012/browse-synsets"
-    windowsScripts = true // generate gather scripts for Windows
-    linuxScripts = true   // generate gather scripys for Linus
+    windowsScripts = false // generate gather scripts for Windows
+    linuxScripts = false   // generate gather scripys for Linus
 )
 
 func main() {

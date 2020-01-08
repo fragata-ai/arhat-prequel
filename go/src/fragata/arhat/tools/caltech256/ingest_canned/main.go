@@ -1,5 +1,5 @@
 //
-// Copyright 2019 FRAGATA COMPUTER SYSTEMS AG
+// Copyright 2019-2020 FRAGATA COMPUTER SYSTEMS AG
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,9 +52,9 @@ import (
 // configurable
 
 var (
-    sourceTar = "256_ObjectCategories.tar"
+    sourceTar = "./raw/256_ObjectCategories.tar"
     dataOutput = "./data"
-    trainPct = 80
+    trainPct = 90
     testResize = false // if true, write resized images to testOutput
     testOutput = "./test"
 )
