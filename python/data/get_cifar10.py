@@ -1,5 +1,5 @@
 #
-# Copyright 2019 FRAGATA COMPUTER SYSTEMS AG
+# Copyright 2019-2020 FRAGATA COMPUTER SYSTEMS AG
 # Copyright 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
