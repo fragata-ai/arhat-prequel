@@ -241,9 +241,6 @@ func ProcessImage(r io.Reader, name string, w io.Writer, train bool) error {
     ymin := bounds.Min.Y
     ymax := bounds.Max.Y
 
-    fmt.Printf("  bbox %d %d %d %d\n", 
-        bounds.Min.X, bounds.Max.X, bounds.Min.Y, bounds.Max.Y)
-
     dx := xmax - xmin
     dy := ymax - ymin
     xoff := 0
