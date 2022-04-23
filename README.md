@@ -1,7 +1,7 @@
 # Arhat Prequel
 
-This repository contains the code of Arhat Prequel, an experimental deep learning framework developed at the early stage of Arhat project.
-We have used Arhat Prequel as a pure research tool for experimenting with various ideas.
+This repository contains code of Arhat Prequel, an experimental deep learning framework developed at the early stage of Arhat project.
+We have used Arhat Prequel as a pure research tool for experimenting with various engineering concepts.
 Upon completion of these experiments, Arhat Prequel development has been discontinued and 
 definitive implementation of Arhat project has been started from scratch. 
 
