@@ -1,22 +1,31 @@
-# Arhat
+# Arhat Prequel
 
-Arhat is an experimental deep learning framework implemented in [Go](https://golang.org/). Unlike most mainstream frameworks that perform training and inference computations directly, Arhat translates neural network descriptions into standalone lean executable platform-specific code. This approach allows direct embedding of the generated code into user applications and does not require deployment of sophisticated machine learning software stacks on the target platforms.
+This repository contains the code of Arhat Prequel, an experimental deep learning framework developed at the early stage of Arhat project.
+We have used Arhat Prequel as a pure research tool for experimenting with various ideas.
+Upon completion of these experiments, Arhat Prequel development has been discontinued and 
+definitive implementation of Arhat project has been started from scratch. 
 
-Arhat supports swappable platform-specific code generators (backends). Currently two backends are available:
+We have published the Arhat Prequel code in hope that it might be of interest
+to the community as a rare example of a deep learning framework implemented in Go programming language.
+
+Unlike most mainstream frameworks that perform training and inference computations directly, 
+Arhat Prequel translates neural network descriptions into standalone lean executable platform-specific code. 
+This approach allows direct embedding of the generated code into user applications and does not require deployment of 
+sophisticated machine learning software stacks on the target platforms.
+
+Arhat Prequel supports swappable platform-specific code generators (backends). Currently two backends are available:
 
 * CPU: a reference backend generating C++ code for use on the CPU;
 * CUDA: a backend generating C++/CUDA code for use on the NVIDIA GPU.
 
 Implementation of more backends for other platforms is planned.
 
-Arhat implementation is based on [neon](https://github.com/NervanaSystems/neon), Intel® Nervana™ reference deep learning framework. We have ported sections of neon code from Python to Go and partly redesigned it implementing code generators
+Arhat Prequel implementation is based on [neon](https://github.com/NervanaSystems/neon), Intel® Nervana™ reference deep learning framework. We have ported sections of neon code from Python to Go and partly redesigned it implementing code generators
 in place of the original backends.
-
-We use Arhat internally as a research platform for our larger ongoing project aiming at construction of a machine learning framework optimized for use on embedded platforms and massively parallel supercomputers.
 
 ## Requirements
 
-The following hardware and software components are required for using Arhat:
+The following hardware and software components are required for using Arhat Prequel:
 
 * OS: Windows or Linux (macOS should suit too but was not yet tested);
 * NVIDIA GPU device (Kepler of newer);
@@ -32,14 +41,14 @@ Examples included in this distribution require two data sets:
 * [MNIST](http://yann.lecun.com/exdb/mnist/)
 * [CIFAR10](https://www.cs.toronto.edu/~kriz/cifar.html)
 
-These data sets can be obtained and converted to Arhat format using the supplied Python scripts:
+These data sets can be obtained and converted to Arhat Prequel format using the supplied Python scripts:
 
 * `get_mnist.py`
 * `get_cifar10.py`
 
 ## Runtime libraries
 
-Arhat provides few run-time libraries required to build executables from the generated code:
+Arhat Prequel provides few run-time libraries required to build executables from the generated code:
 
 * `runtime`: runtime components common for all backends;
 * `runtime_cpu`: runtime components required for the CPU backend;
@@ -75,5 +84,5 @@ The generated code will be placed in subdirectories `mnist_mlp_cuda` and `mnist_
 
 ## License
 
-We are releasing Arhat under an open source [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License.
+We are releasing Arhat Prequel under an open source [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License.
 
